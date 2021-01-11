@@ -1,0 +1,6 @@
+.signatureCanvas {
+  border: 1px solid black;
+  max-width: 500px;
+  min-height: 300px;
+  background-image: url('https://mdn.mozillademos.org/files/7693/catfront.png');
+}
