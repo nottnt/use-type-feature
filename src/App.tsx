@@ -4,7 +4,8 @@ import SignaturePad, { ReactSignatureCanvasProps } from 'react-signature-canvas'
 import * as R from 'ramda'
 import './App.css'
 import './sigCanvas.css'
-import useClearSignPad from './useClearSignPad'
+// import useClearSignPad from './useClearSignPad'
+import useWindowSize from './useWindowSize'
 
 interface IOptions {
   velocityFilterWeight?: number
@@ -24,14 +25,19 @@ interface IOptions {
 const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
   const [imageURL, setImageURL] = useState<boolean | any>(null) // create a state that will contain our image url
   const [signableEnd, setSignableEnd] = useState<boolean | null>(null)
+  const [isShowWaterMarkContent, setIsShowWaterMarkContent] = useState<boolean>(
+    true,
+  )
   const sigCanvas = useRef<SignaturePad>(null)
   const h1Ref = useRef<HTMLHeadingElement>(null)
+  const windowSize = useWindowSize()
 
   /* a function that uses the canvas ref to clear the canvas 
   via a method given by react-signature-canvas */
   const clear = () => {
     if (sigCanvas.current) sigCanvas.current.clear()
     setSignableEnd(false)
+    setIsShowWaterMarkContent(true)
   }
 
   /* a function that uses the canvas ref to trim the canvas 
@@ -40,6 +46,10 @@ const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
   const save = () => {
     if (sigCanvas.current)
       setImageURL(sigCanvas.current.getTrimmedCanvas().toDataURL('image/png'))
+  }
+
+  const onSignableStart = () => {
+    setIsShowWaterMarkContent(false)
   }
 
   const onSignableEnd = () => {
@@ -58,6 +68,19 @@ const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
     console.log(sigCanvas) // { current: <h1_object> }
   })
 
+  interface WindowSize {
+    width: number
+    height: number
+  }
+  const useClearSignPad = ({ width, height }: WindowSize) => {
+    useEffect(() => {
+      console.log(width, height)
+      clear()
+    }, [width, height])
+  }
+
+  useClearSignPad(windowSize)
+
   return (
     <div className="App">
       <h1 ref={h1Ref}>App</h1>
@@ -72,14 +95,18 @@ const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
             <SignaturePad
               ref={sigCanvas}
               canvasProps={{
-                className: 'signatureCanvas',
-                width: 400,
-                height: 300,
+                className: isShowWaterMarkContent
+                  ? 'signatureCanvas'
+                  : 'signatureCanvas1',
+                width: windowSize.width - 300,
+                height: 364,
               }}
-              clearOnResize={false}
               onEnd={onSignableEnd}
+              onBegin={onSignableStart}
             />
+
             {signableEnd && 'Sign End!!!'}
+            {`height: ${windowSize.height} width: ${windowSize.width}`}
             {/* Button to trigger save canvas image */}
             <button onClick={save}>Save</button>
             <button onClick={clear}>Clear</button>
@@ -91,7 +118,7 @@ const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
       <br />
       {/* if our we have a non-null image url we should 
       show an image and pass our imageURL state to it*/}
-      {imageURL}
+      {/* {imageURL} */}
       {imageURL ? (
         <img
           src={imageURL}

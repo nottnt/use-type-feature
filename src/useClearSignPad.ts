@@ -1,15 +1,18 @@
 import React, { useEffect } from 'react'
 
-interface UseClearSignPadProps {
-  isEmpty: () => boolean
-  clear: () => void
+interface WindowSize {
+  width: number
+  height: number
 }
 
-const useClearSignPad = ({ isEmpty, clear }: UseClearSignPadProps) => {
+const useClearSignPad = ({ width, height }: WindowSize, clear: () => void) => {
   useEffect(() => {
-    console.log(isEmpty())
-    if (isEmpty()) clear()
-  }, [isEmpty, clear])
+    console.log(width, height)
+    const clear1 = () => {
+      console.log('use clear')
+    }
+    clear1()
+  }, [width, height])
 }
 
 export default useClearSignPad
