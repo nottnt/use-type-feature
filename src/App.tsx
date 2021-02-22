@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import Popup from 'reactjs-popup'
 import SignaturePad, { ReactSignatureCanvasProps } from 'react-signature-canvas'
+import styled, { css } from 'styled-components'
 import * as R from 'ramda'
 import './App.css'
 import './sigCanvas.css'
 // import useClearSignPad from './useClearSignPad'
 import useWindowSize from './useWindowSize'
+import SignPad from './SignPad'
+import Watermark from './assets/images/watermark.png'
 
 interface IOptions {
   velocityFilterWeight?: number
@@ -22,16 +25,29 @@ interface IOptions {
   }
 }
 
-const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
+const generatedCss = styled.div`
+  .signatureCanvas2 {
+    border: 1px solid black;
+    /* width: 100%; */
+    /* height: 300px; */
+    z-index: 1;
+    background-image: url('https://mdn.mozillademos.org/files/7693/catfront.png');
+  }
+`
+
+const App = () => {
   const [imageURL, setImageURL] = useState<boolean | any>(null) // create a state that will contain our image url
   const [signableEnd, setSignableEnd] = useState<boolean | null>(null)
   const [isShowWaterMarkContent, setIsShowWaterMarkContent] = useState<boolean>(
     true,
   )
+  const [readOnly, setReadOnly] = useState<boolean>(false)
   const sigCanvas = useRef<SignaturePad>(null)
   const h1Ref = useRef<HTMLHeadingElement>(null)
   const windowSize = useWindowSize()
+  const extractFromStyledCss = generatedCss
 
+  console.log(extractFromStyledCss.styledComponentId)
   /* a function that uses the canvas ref to clear the canvas 
   via a method given by react-signature-canvas */
   const clear = () => {
@@ -44,8 +60,10 @@ const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
   from white spaces via a method given by react-signature-canvas
   then saves it in our state */
   const save = () => {
-    if (sigCanvas.current)
+    if (sigCanvas.current) {
       setImageURL(sigCanvas.current.getTrimmedCanvas().toDataURL('image/png'))
+      setReadOnly(true)
+    }
   }
 
   const onSignableStart = () => {
@@ -79,7 +97,11 @@ const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
     }, [width, height])
   }
 
-  useClearSignPad(windowSize)
+  const reSign = () => {
+    setReadOnly(false)
+    clear()
+  }
+  // useClearSignPad(windowSize)
 
   return (
     <div className="App">
@@ -92,24 +114,27 @@ const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
       >
         {(close: () => void) => (
           <>
-            <SignaturePad
-              ref={sigCanvas}
+            <SignPad
+              refApi={sigCanvas}
+              readOnly={readOnly}
+              imageURL={imageURL}
               canvasProps={{
-                className: isShowWaterMarkContent
-                  ? 'signatureCanvas'
-                  : 'signatureCanvas1',
-                width: windowSize.width - 300,
+                width: 972,
                 height: 364,
+                style: {
+                  zIndex: 1,
+                  backgroundImage: `url(${Watermark})`,
+                },
               }}
               onEnd={onSignableEnd}
               onBegin={onSignableStart}
             />
-
             {signableEnd && 'Sign End!!!'}
             {`height: ${windowSize.height} width: ${windowSize.width}`}
             {/* Button to trigger save canvas image */}
             <button onClick={save}>Save</button>
             <button onClick={clear}>Clear</button>
+            <button onClick={reSign}>Re-Sign</button>
             <button onClick={close}>Close</button>
           </>
         )}
@@ -119,20 +144,18 @@ const App: React.FC<ReactSignatureCanvasProps | IOptions> = () => {
       {/* if our we have a non-null image url we should 
       show an image and pass our imageURL state to it*/}
       {/* {imageURL} */}
-      {imageURL ? (
-        <img
-          src={imageURL}
-          alt="my signature"
-          style={{
-            display: 'block',
-            margin: '0 auto',
-            border: '1px solid black',
-            width: '150px',
-          }}
-        />
-      ) : null}
+      {/* {imageURL} */}
     </div>
   )
 }
+
+const SignaturePadExtended = styled(SignaturePad).attrs((props) => ({
+  ref: props.ref,
+  canvasProps: {
+    ...props.canvasProps,
+    className: 'signatureCanvas1111',
+  },
+  ...props,
+}))``
 
 export default App
